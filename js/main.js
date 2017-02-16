@@ -17,10 +17,34 @@ $(document).ready(function(){
   } else {
 
     // You can play the game !!!!
+    
+    //Audio context
     var audioCtx = new AudioContext();
+    // var convolver = audio.Ctx.createConvolver();
+    // convolver.buffer = myAudioBuffer; 
 
-    var frequencies = [329.63,261.63,220,164.81];
+    //Regular audio source 
+    var frequencies = [200,50,150,500];
 
+    // ajaxRequest = new XMLHttpRequest();
+    // ajaxRequest.open('GET', 'piano.wav', true);
+    // ajaxRequest.responseType = 'arraybuffer';
+
+    // ajaxRequest.onload = function() {
+    //   var audioData = ajaxRequest.response; 
+    //   audioCtx.decodeAudioData(audioData, function(buffer)) {
+    //     concertHallBuffer = buffer;
+    //     soundSource = audioCtx.createBufferSource();
+    //     soundSource.buffer = concertHallBuffer;
+    //   }, function(e){"Error with decoding audio data" + e.err});
+
+    // }
+
+    // ajaxRequest.send();
+
+    // convolver.buffer = concertHallBuffer;
+
+    //Error audio source
     var errOsc = audioCtx.createOscillator();
     errOsc.type = 'triangle';
     errOsc.frequency.value = 110;
@@ -32,38 +56,10 @@ $(document).ready(function(){
 
     var ramp = 0.05;
     var vol = 0.5;
+    var convolver = audioCtx.createConvolver();
 
     var gameStatus = {};
 
-    var blue = 0;
-    var red = 0;
-    var green = 0;
-    var yellow = 0;
-
-    var randColor = function() {
-      
-      $('#0').click(function () {
-      blue = blue+10;
-      console.log(blue);
-      });
-
-      $('#2').click(function () {
-      red = red+10;
-      console.log(red);
-      });
-
-      $('#3').click(function () {
-      green = green+10;
-      console.log(green);
-      });
-      return "rgb(" + red + "," + green + "," + blue + ")";
-    };
-
-
-    $('.push').click(function () {
-      $('body').css('background-color', randColor());
-
-    })
 
     gameStatus.reset = function(){
       this.init();
@@ -92,6 +88,7 @@ $(document).ready(function(){
       var g = audioCtx.createGain();
       osc.connect(g);
       g.connect(audioCtx.destination);
+
       g.gain.value = 0;
       return g;
     });
@@ -122,6 +119,7 @@ $(document).ready(function(){
       errNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + ramp);
     };
 
+    //Game logic 
     function gameStart(){
       resetTimers();
       stopGoodTones();
@@ -134,14 +132,15 @@ $(document).ready(function(){
 
     function setTimeStep(num){
       var tSteps = [1250 , 1000 , 750, 500 ];
-      if (num < 4)
+      if (num < 4) {
         return tSteps[0];
-      if (num < 8)
+      } else if (num < 8) {
         return tSteps[1];
-      if (num < 12)
+      } else if (num < 12) {
         return tSteps[2];
+      } else
       return tSteps[3];
-    }
+    };
 
     function notifyError(pushObj){
       gameStatus.lock = true;
@@ -244,7 +243,7 @@ $(document).ready(function(){
           gameStatus.index++;
           if(gameStatus.index < gameStatus.sequence.length){
             gameStatus.toHndl = setTimeout(notifyError,5*gameStatus.timeStep);
-          }else if (gameStatus.index == 20){
+          }else if (gameStatus.index == 12){
             $('.push').removeClass('clickable').addClass('unclickable');
             gameStatus.toHndl = setTimeout(notifyWin,gameStatus.timeStep);
           }else{
