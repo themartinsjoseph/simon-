@@ -51,7 +51,7 @@
 
 //    // colorUpdate(); 
    
-// //NAMESPACE GRADIENT COLOR BUILDERS 
+//NAMESPACE GRADIENT COLOR BUILDERS 
 // var colors = new Array(
 //   [62,35,255],
 //   [60,255,60],
