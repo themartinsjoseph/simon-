@@ -6,64 +6,59 @@ $(document).ready(function(){
     || window.webkitAudioContext // Safari and old versions of Chrome
     || false;
 
-
   if(!AudioContext) {
-
+    
     // Sorry, but the game won't work for you
     alert('Sorry, but the Web Audio API is not supported by your browser.'
     + ' Please, consider downloading the latest version of '
     + 'Google Chrome or Mozilla Firefox');
 
   } else {
-
     // You can play the game !!!!
+    
+    //Audio context
     var audioCtx = new AudioContext();
+ 
 
+    //Regular audio source 
     var frequencies = [329.63,261.63,220,164.81];
-
+    var delay = audioCtx.createDelay(3.0);
+    
+    //Error audio source
     var errOsc = audioCtx.createOscillator();
     errOsc.type = 'triangle';
     errOsc.frequency.value = 110;
-    errOsc.start(0.0); //delay optional parameter is mandatory on Safari
+    errOsc.start(0.0); //delay optional parameter is mandatory on Safari it will start right away
     var errNode = audioCtx.createGain();
     errOsc.connect(errNode);
     errNode.gain.value = 0;
+    errNode.connect(delay);
     errNode.connect(audioCtx.destination);
 
     var ramp = 0.05;
     var vol = 0.5;
+    delay.delayTime.value = 1;
 
     var gameStatus = {};
 
-    var blue = 0;
-    var red = 0;
-    var green = 0;
-    var yellow = 0;
-
-    var randColor = function() {
-      
-      $('#0').click(function () {
-      blue = blue+10;
-      console.log(blue);
-      });
-
-      $('#2').click(function () {
-      red = red+10;
-      console.log(red);
-      });
-
-      $('#3').click(function () {
-      green = green+10;
-      console.log(green);
-      });
-      return "rgb(" + red + "," + green + "," + blue + ")";
-    };
-
-
-    $('.push').click(function () {
-      $('body').css('background-color', randColor());
-
-    })
+     function openAnimation() {
+          $('.hide2').fadeTo(300, 1);
+          $('.green').fadeTo(2000, 1, function() {
+            $('.green').addClass('light');
+          });
+          $('.red').fadeTo(2500, 1, function() {
+            $('.red').addClass('light');
+          });
+          $('.blue').fadeTo(3000, 1, function() {
+            $('.blue').addClass('light');
+          });
+          $('.yellow').fadeTo(3500, 1, function() {
+            $('.yellow').addClass('light');
+            $('.yellow').fadeTo(1200, 1, function() {
+              $('.push').removeClass('light');
+            });
+          });
+          };
 
     gameStatus.reset = function(){
       this.init();
@@ -96,6 +91,11 @@ $(document).ready(function(){
       return g;
     });
 
+    $('.round-btn-surprise').click(function(){
+         $('.push').toggleClass('surprise')
+         $('#mode-led-surprise').toggleClass('led-on');
+         gameStatus.strict = !gameStatus.strict;
+      });
 
     function playGoodTone(num){
       gainNodes[num].gain
@@ -122,6 +122,7 @@ $(document).ready(function(){
       errNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + ramp);
     };
 
+    //Game logic 
     function gameStart(){
       resetTimers();
       stopGoodTones();
@@ -134,14 +135,15 @@ $(document).ready(function(){
 
     function setTimeStep(num){
       var tSteps = [1250 , 1000 , 750, 500 ];
-      if (num < 4)
+      if (num < 4) {
         return tSteps[0];
-      if (num < 8)
+      } else if (num < 8) {
         return tSteps[1];
-      if (num < 12)
+      } else if (num < 12) {
         return tSteps[2];
-      return tSteps[3];
-    }
+      } else
+        return tSteps[3];
+    };
 
     function notifyError(pushObj){
       gameStatus.lock = true;
@@ -236,27 +238,28 @@ $(document).ready(function(){
       if(!gameStatus.lock) {
         clearTimeout(gameStatus.toHndl);
         var pushNr = pushObj.attr('id');
+        
         if( pushNr == gameStatus.sequence[gameStatus.index]
             && gameStatus.index < gameStatus.sequence.length){
-
-          playGoodTone(pushNr);
-          gameStatus.lastPush = pushObj;
-          gameStatus.index++;
+            playGoodTone(pushNr);
+            gameStatus.lastPush = pushObj;
+            gameStatus.index++;
+          
           if(gameStatus.index < gameStatus.sequence.length){
-            gameStatus.toHndl = setTimeout(notifyError,5*gameStatus.timeStep);
-          }else if (gameStatus.index == 20){
+            gameStatus.toHndl = setTimeout(notifyError,5*gameStatus.timeStep);  
+            } else if (gameStatus.index == 12){
             $('.push').removeClass('clickable').addClass('unclickable');
             gameStatus.toHndl = setTimeout(notifyWin,gameStatus.timeStep);
-          }else{
+          } else {
             $('.push').removeClass('clickable').addClass('unclickable');
             addStep();
           }
-        }else{
-          $('.push').removeClass('clickable').addClass('unclickable');
-          notifyError(pushObj);
-        }
+          } else {
+            $('.push').removeClass('clickable').addClass('unclickable');
+            notifyError(pushObj);
+         }
       }
-    }
+    };
 
     $('.push').mousedown(function(){
       pushColor($(this));
@@ -268,16 +271,15 @@ $(document).ready(function(){
         stopGoodTones();
     });
 
-
     function toggleStrict(){
       $('#mode-led').toggleClass('led-on');
       gameStatus.strict = !gameStatus.strict;
-    }
+    };
 
     $('.sw-slot').click(function(){
       $('#pwr-sw').toggleClass('sw-on');
       if($('#pwr-sw').hasClass('sw-on')==false){
-        $('.hide').fadeTo('slow', .01);
+        $('.hide').fadeTo('slow', 0);
         gameStatus.reset();
         $('.count').text('--');
         $('.count').addClass('led-off');
@@ -290,7 +292,8 @@ $(document).ready(function(){
         stopGoodTones();
         stopErrTone();
       }else{
-        $('.hide').fadeTo(600, 1);
+        // $('.hide').fadeTo(600, 1);
+        openAnimation();
         $('.btn').removeClass('unclickable').addClass('clickable');
         $('.count').removeClass('led-off');
         $('#start').click(gameStart);
@@ -302,4 +305,5 @@ $(document).ready(function(){
 
   }
 });
+
 
